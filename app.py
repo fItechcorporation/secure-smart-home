@@ -187,9 +187,30 @@ def turn_off():
 
     return redirect(url_for("dashboard"))
 
-@app.route("/test")
-def test():
-    return "HELLO ESP32"
+# ----------------------------
+# Simulate Motion Detection API
+# ----------------------------
+
+@app.route("/api/motion", methods=["POST"])
+def motion_alert():
+
+    alert = Alert(
+        message="Motion Detected!"
+    )
+
+    db.session.add(alert)
+
+    log = Log(
+        action="Motion Detected By PIR Sensor"
+    )
+
+    db.session.add(log)
+
+    db.session.commit()
+
+    return {
+        "status": "success"
+    }
 
 # ----------------------------
 # Device Command API
