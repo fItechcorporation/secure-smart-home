@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Secure Smart Home</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    background:#f4f6f9;
+    margin:0;
+    padding:20px;
+}
+
+.header{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.status{
+    color:green;
+    font-weight:bold;
+}
+
+button{
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+    font-weight:bold;
+}
+
+.on{
+    background:#2e7d32;
+}
+
+.off{
+    background:#c62828;
+}
+
+.log-box{
+    max-height:250px;
+    overflow-y:auto;
+}
+
+.log-item{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>🏠 Secure Smart Home</h1>
+</div>
+
+<div class="card">
+    <h3>Device Status</h3>
+    <p class="status">🟢 Online</p>
+</div>
+
+<div class="card">
+
+    <h3>Manual Light Control</h3>
+
+    <form action="/turn_on" method="post">
+        <button class="on">
+            💡 TURN ON
+        </button>
+    </form>
+
+    <br>
+
+    <form action="/turn_off" method="post">
+        <button class="off">
+            ❌ TURN OFF
+        </button>
+    </form>
+
+</div>
+
+<div class="card">
+    <h3>Motion Sensor</h3>
+    <p>🚶 No Motion Detected</p>
+
+    <form action="/simulate_motion" method="post">
+    <button class="on">
+        TEST MOTION ALERT
+    </button>
+</form>
+</div>
+
+<div class="card">
+
+    <h3>Latest Alert</h3>
+
+    {% if alerts %}
+
+        {% for alert in alerts[:5] %}
+
+            <p>
+                ⚠ {{ alert.message }}
+                <br>
+                {{ alert.timestamp }}
+            </p>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>🔔 No Alerts</p>
+
+    {% endif %}
+
+</div>
+
+<div class="card">
+
+    <h3>Security Logs</h3>
+
+    <div class="log-box">
+
+        {% for log in logs %}
+
+        <div class="log-item">
+
+            {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+
+            -
+
+            {{ log.action }}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+</body>
+</html>
