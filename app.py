@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from flask import jsonify
 
 app = Flask(__name__)
@@ -15,9 +16,18 @@ device_state = {
     "manual_led": False
 }
 
-# ==========================
+# ----------------------------
+# Malaysia Timezone Function
+# ----------------------------
+
+def malaysia_time():
+    return datetime.now(
+        ZoneInfo("Asia/Kuala_Lumpur")
+    )
+
+# ----------------------------
 # User Table
-# ==========================
+# ----------------------------
 
 class User(db.Model):
 
@@ -25,25 +35,26 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(100))
     
-# ==========================
+# ----------------------------
 # Device Table
-# ==========================
+# ----------------------------
 
 class Device(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     device_id = db.Column(db.String(50))
     api_key = db.Column(db.String(100))
+    last_seen = db.Column(db.DateTime, default=malaysia_time)
 
-# ==========================
+# ----------------------------
 # Alert Table
-# ==========================
+# ----------------------------
 
 class Alert(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.String(200))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=malaysia_time)
 
 # ----------------------------
 # Log Table
@@ -52,7 +63,7 @@ class Alert(db.Model):
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     action = db.Column(db.String(100))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=malaysia_time)
 
 # ----------------------------
 # Login Credentials
@@ -128,6 +139,27 @@ def simulate_motion():
     return redirect(url_for("dashboard"))
 
 # ----------------------------
+# Heartbeat API for Device
+# ----------------------------
+
+@app.route("/api/device-heartbeat", methods=["POST"])
+def device_heartbeat():
+
+    device = Device.query.filter_by(
+        device_id="ESP32_001"
+    ).first()
+
+    if device:
+
+        device.last_seen = malaysia_time()
+
+        db.session.commit()
+
+    return {
+        "status": "alive"
+    }
+
+# ----------------------------
 # Dashboard
 # ----------------------------
 
@@ -145,10 +177,24 @@ def dashboard():
     print("TOTAL LOGS:", len(logs))
     print("TOTAL ALERTS:", len(alerts))
 
+    device = Device.query.filter_by(
+        device_id="ESP32_001"
+    ).first()
+
+    device_online = False
+
+    if device:
+
+        diff = malaysia_time() - device.last_seen
+
+        if diff < timedelta(seconds=10):
+            device_online = True
+
     return render_template(
         "dashboard.html",
         logs=logs,
-        alerts=alerts
+        alerts=alerts,
+        device_online=device_online
     )
 
 # ----------------------------
