@@ -149,11 +149,21 @@ def device_heartbeat():
         device_id="ESP32_001"
     ).first()
 
-    if device:
+    if device is None:
+
+        device = Device(
+            device_id="ESP32_001",
+            api_key="SECURE123",
+            last_seen=malaysia_time()
+        )
+
+        db.session.add(device)
+
+    else:
 
         device.last_seen = malaysia_time()
 
-        db.session.commit()
+    db.session.commit()
 
     return {
         "status": "alive"
