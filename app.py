@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 from flask import jsonify
 
 app = Flask(__name__)
@@ -21,9 +20,7 @@ device_state = {
 # ----------------------------
 
 def malaysia_time():
-    return datetime.now(
-        ZoneInfo("Asia/Kuala_Lumpur")
-    )
+    return datetime.utcnow() + timedelta(hours=8)
 
 # ----------------------------
 # User Table
@@ -195,9 +192,9 @@ def dashboard():
 
     if device:
 
-        diff = malaysia_time() - device.last_seen
+        diff = malaysia_time().replace(tzinfo=None) - device.last_seen
 
-        if diff < timedelta(seconds=10):
+        if device.last_seen:
             device_online = True
 
     return render_template(
