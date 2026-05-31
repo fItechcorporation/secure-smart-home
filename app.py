@@ -189,13 +189,19 @@ def dashboard():
     ).first()
 
     device_online = False
+    
+    if device and device.last_seen:
+        diff = malaysia_time() - device.last_seen
+        
+        print("LAST SEEN:", device.last_seen)
+        print("NOW:", malaysia_time())
+        print("DIFF:", diff.total_seconds())
 
-    if device:
+    print("SECONDS SINCE LAST HEARTBEAT:",
+          diff.total_seconds())
 
-        diff = malaysia_time().replace(tzinfo=None) - device.last_seen
-
-        if device.last_seen:
-            device_online = True
+    if diff.total_seconds() < 10:
+        device_online = True
 
     return render_template(
         "dashboard.html",
